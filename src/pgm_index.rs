@@ -292,6 +292,13 @@ impl<K: Key> PGMIndex<K> {
         }
     }
 
+    /// Predict position for a key (for accuracy benchmarking)
+    /// 预测键的位置（用于精度基准测试）
+    pub fn predict_pos(&self, key: K) -> usize {
+        let seg_idx = self.find_segment_for_key_lut(key);
+        self.predict_index(key, seg_idx)
+    }
+
     fn find_segment_for_key_lut(&self, key: K) -> usize {
         if self.segments.len() <= 1 {
             return 0;
@@ -417,5 +424,16 @@ mod tests {
         let idx16 = PGMIndex::new(data.clone(), 16);
         let idx128 = PGMIndex::new(data, 128);
         assert!(idx16.segment_count() >= idx128.segment_count());
+    }
+
+    #[test]
+    fn test_predict_pos() {
+        let data: Vec<u64> = (0..10_000).collect();
+        let idx = PGMIndex::new(data.clone(), 32);
+        for (actual, &key) in data.iter().enumerate() {
+            let pred = idx.predict_pos(key);
+            let error = pred.abs_diff(actual);
+            assert!(error <= 32 * 2, "error {error} too large for key {key}");
+        }
     }
 }
