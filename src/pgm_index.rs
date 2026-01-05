@@ -280,7 +280,7 @@ impl<K: Key> PGMIndex<K> {
         data_bytes + seg_bytes + lut_bytes
     }
 
-    fn predict_index(&self, key: K, segment_idx: usize) -> usize {
+    pub fn predict_index(&self, key: K, segment_idx: usize) -> usize {
         let seg = self.segments[segment_idx];
         let y = key.to_f64().unwrap();
         if seg.slope.abs() < 1e-18 {
